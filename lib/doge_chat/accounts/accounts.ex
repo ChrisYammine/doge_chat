@@ -61,4 +61,70 @@ defmodule DogeChat.Accounts do
     password = chgset.changes.password
     change(chgset, %{password_hash: hashpwsalt(password)})
   end
+
+
+  ############
+  # SESSIONS #
+  ############
+
+  alias DogeChat.Accounts.Session
+
+  def get_session(token) when is_binary(token) do
+    query = from s in Session,
+            where: s.token == ^token,
+            preload: [:user]
+    Repo.one(query)
+  end
+
+  def create_session(attrs \\ %{}) do
+    %Session{}
+    |> session_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def delete_session(token) when is_binary(token) do
+    query = from s in Session,
+            where: s.token == ^token
+
+    with session <- Repo.one!(query),
+         {:ok, _} <- Repo.delete(session) do
+      :ok
+    else
+      _ ->
+        :error
+    end
+  end
+
+  def change_session(%Session{} = session) do
+    session
+    |> change
+  end
+
+  defp session_changeset(%Session{} = session, attrs) do
+    session
+    |> cast(attrs, [:email, :password])
+    |> validate_required([:email, :password])
+    |> authenticate_user
+  end
+
+  defp authenticate_user(%Ecto.Changeset{valid?: false} = chgset), do: chgset
+  defp authenticate_user(%Ecto.Changeset{changes: %{email: email, password: password}} = chgset) do
+    with %User{email: ^email, password_hash: hash} = user <- Repo.get_by(User, email: email),
+         true <- checkpw(password, hash) do
+      chgset
+      |> add_token
+      |> put_assoc(:user, user)
+    else
+      nil ->
+        dummy_checkpw()
+        add_error(chgset, :email, "User with email #{email} not found.")
+      false ->
+        add_error(chgset, :email, "Incorrect password.")
+    end
+  end
+
+  defp add_token(chgset) do
+    chgset
+    |> put_change(:token, UUID.uuid4())
+  end
 end

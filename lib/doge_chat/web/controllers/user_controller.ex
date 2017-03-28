@@ -1,6 +1,5 @@
 defmodule DogeChat.Web.UserController do
   use DogeChat.Web, :controller
-
   alias DogeChat.Accounts
 
   def index(conn, _params) do

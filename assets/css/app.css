@@ -2,3 +2,9 @@
 #content-body {
   padding-top: 40px;
 }
+
+#logout_link {
+  display: block;
+  padding: 15px 15px;
+  margin: 0;
+}

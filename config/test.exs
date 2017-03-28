@@ -12,8 +12,8 @@ config :logger, level: :warn
 # Configure your database
 config :doge_chat, DogeChat.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: System.get_env("POSTGRES_USERNAME"),
+  password: System.get_env("POSTGRES_PASSWORD"),
   database: "doge_chat_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
