@@ -1,0 +1,4 @@
+<h1>Show</h1>
+<script type="text/javascript">
+  window.userToken = "<%= @token %>";
+</script>

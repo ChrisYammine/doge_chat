@@ -7,14 +7,15 @@ defmodule DogeChat.Web.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug DogeChat.Web.LoadCurrentUser
   end
 
   pipeline :authenticated do
-    plug DogeChat.Web.EnsureAuthenticated
+    plug DogeChat.Web.CheckAuth, :authenticated
   end
 
   pipeline :not_authenticated do
-    plug DogeChat.Web.EnsureNotAuthenticated
+    plug DogeChat.Web.CheckAuth, :not_authenticated
   end
 
   pipeline :api do
@@ -30,19 +31,18 @@ defmodule DogeChat.Web.Router do
   scope "/", DogeChat.Web do
     pipe_through [:browser, :not_authenticated]
 
-    resources "/users", UserController, only: [:new, :create]
-    resources "/sessions", SessionController, only: [:new, :create]
+    get "/signup", UserController, :new
+    resources "/users", UserController, only: [:create]
+    get "/login", SessionController, :new
+    resources "/sessions", SessionController, only: [:create]
   end
 
   scope "/", DogeChat.Web do
     pipe_through [:browser, :authenticated]
 
-    resources "/users", UserController, only: [:index, :show, :edit, :update]
-    resources "/sessions", SessionController, only: [:delete], singleton: true
-  end
+    get "/chat", PageController, :show
 
-  # Other scopes may use custom stacks.
-  # scope "/api", DogeChat.Web do
-  #   pipe_through :api
-  # end
+    resources "/users", UserController, only: [:index, :show, :edit, :update] # Edit & Update not used yet
+    delete "/logout", SessionController, :delete
+  end
 end
