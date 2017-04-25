@@ -1,15 +1,22 @@
 defmodule DogeChat.Web.SessionControllerTest do
   use DogeChat.Web.ConnCase
+  use Plug.Test
 
   alias DogeChat.Accounts
+  alias DogeChat.Web.UserControllerTest
+  import DogeChat.Web.TestUtils
 
-  @create_attrs %{token: "some token"}
-  @update_attrs %{token: "some updated token"}
-  @invalid_attrs %{token: nil}
+  @invalid_attrs %{email: "some@token.com", password: password()}
 
   def fixture(:session) do
-    {:ok, session} = Accounts.create_session(@create_attrs)
+    user = UserControllerTest.fixture(:user)
+    {:ok, session} = Accounts.create_session(%{email: user.email, password: password()})
     session
+  end
+
+  defp logged_in_conn do
+    session = fixture(:session)
+    build_conn() |> init_test_session(%{auth_token: session.token})
   end
 
   test "renders form for new sessions", %{conn: conn} do
@@ -18,13 +25,10 @@ defmodule DogeChat.Web.SessionControllerTest do
   end
 
   test "creates session and redirects to show when data is valid", %{conn: conn} do
-    conn = post conn, session_path(conn, :create), session: @create_attrs
+    user = UserControllerTest.fixture(:user)
+    conn = post conn, session_path(conn, :create), session: %{email: user.email, password: password()}
 
-    assert %{id: id} = redirected_params(conn)
-    assert redirected_to(conn) == session_path(conn, :show, id)
-
-    conn = get conn, session_path(conn, :show, id)
-    assert html_response(conn, 200) =~ "Show Session"
+    assert redirected_to(conn) == user_path(conn, :index)
   end
 
   test "does not create session and renders errors when data is invalid", %{conn: conn} do
@@ -33,11 +37,8 @@ defmodule DogeChat.Web.SessionControllerTest do
   end
 
   test "deletes chosen session", %{conn: conn} do
-    session = fixture(:session)
-    conn = delete conn, session_path(conn, :delete, session)
-    assert redirected_to(conn) == session_path(conn, :index)
-    assert_error_sent 404, fn ->
-      get conn, session_path(conn, :show, session)
-    end
+    conn = logged_in_conn()
+    conn = delete conn, session_path(conn, :delete)
+    assert redirected_to(conn) == page_path(conn, :index)
   end
 end

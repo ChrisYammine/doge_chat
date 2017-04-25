@@ -14,6 +14,7 @@ defmodule DogeChat.Web.EnsureAuthenticated do
     else
       _ ->
         conn
+        |> put_flash(:info, "You need to be logged in to do that.")
         |> redirect(to: Routes.session_path(conn, :new))
         |> halt()
     end

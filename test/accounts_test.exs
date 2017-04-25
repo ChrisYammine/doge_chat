@@ -4,13 +4,13 @@ defmodule DogeChat.AccountsTest do
   alias DogeChat.Accounts
   alias DogeChat.Accounts.User
 
-  @create_attrs %{email: "some email"}
-  @update_attrs %{email: "some updated email"}
+  @create_attrs %{email: "some@email.com", password: "password123", password_confirmation: "password123"}
+  @update_attrs %{email: "someupdated@email.com", password: "password123", password_confirmation: "password123"}
   @invalid_attrs %{email: nil}
 
   def fixture(:user, attrs \\ @create_attrs) do
     {:ok, user} = Accounts.create_user(attrs)
-    user
+    user |> Map.put(:password, nil)
   end
 
   test "list_users/1 returns all users" do
@@ -25,7 +25,7 @@ defmodule DogeChat.AccountsTest do
 
   test "create_user/1 with valid data creates a user" do
     assert {:ok, %User{} = user} = Accounts.create_user(@create_attrs)
-    assert user.email == "some email"
+    assert user.email == @create_attrs.email
   end
 
   test "create_user/1 with invalid data returns error changeset" do
@@ -36,7 +36,7 @@ defmodule DogeChat.AccountsTest do
     user = fixture(:user)
     assert {:ok, user} = Accounts.update_user(user, @update_attrs)
     assert %User{} = user
-    assert user.email == "some updated email"
+    assert user.email == @update_attrs.email
   end
 
   test "update_user/2 with invalid data returns error changeset" do

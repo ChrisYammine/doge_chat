@@ -28,16 +28,17 @@ defmodule DogeChat.Web.Router do
   end
 
   scope "/", DogeChat.Web do
-    pipe_through [:browser, :authenticated]
+    pipe_through [:browser, :not_authenticated]
 
-    resources "/users", UserController, only: [:index, :show, :new, :create]
-    resources "/sessions", SessionController, only: [:delete], singleton: true
+    resources "/users", UserController, only: [:new, :create]
+    resources "/sessions", SessionController, only: [:new, :create]
   end
 
   scope "/", DogeChat.Web do
-    pipe_through [:browser, :not_authenticated]
+    pipe_through [:browser, :authenticated]
 
-    resources "/sessions", SessionController, only: [:new, :create]
+    resources "/users", UserController, only: [:index, :show, :edit, :update]
+    resources "/sessions", SessionController, only: [:delete], singleton: true
   end
 
   # Other scopes may use custom stacks.
